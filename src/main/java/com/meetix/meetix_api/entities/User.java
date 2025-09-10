@@ -1,4 +1,4 @@
-package com.meetix.entities;
+package com.meetix.meetix_api.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -36,3 +36,4 @@ public class User {
     private String curso;
     private String faculdade;
 }
+
