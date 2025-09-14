@@ -1,5 +1,6 @@
 package com.meetix.meetix_api.entities;
 
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@DiscriminatorValue("MINI_COURSE")
 
 public class MiniCourse extends Event {
 
@@ -18,7 +20,7 @@ public class MiniCourse extends Event {
 
     private String instructor;
 
-    private Integer workloadHours; // carga horária
+    private Integer workloadHours;
     
     private boolean certificate;
 }
