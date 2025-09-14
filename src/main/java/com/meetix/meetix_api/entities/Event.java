@@ -1,47 +1,63 @@
 package com.meetix.meetix_api.entities;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
 import jakarta.persistence.*;
-import lombok.*;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class Event {
-    
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "DTYPE", discriminatorType = DiscriminatorType.STRING)
+public abstract class Event {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO) 
-    private UUID eventId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    private String titulo;
+    @NotBlank(message = "O título é obrigatório.")
+    @Column(nullable = false)
+    private String title;
 
-    @Column(columnDefinition = "TEXT") 
-    private String descricao;
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
-    @Column(name = "data_inicio")
-    private LocalDateTime dataInicio;
+    @NotNull(message = "A data e hora de início são obrigatórias.")
+    @Future(message = "A data de início deve ser no futuro.")
+    @Column(nullable = false)
+    private LocalDateTime startDateTime;
 
-    @Column(name = "data_fim")
-    private LocalDateTime dataFim;
+    @NotNull(message = "A data e hora de término são obrigatórias.")
+    @Future(message = "A data de término deve ser no futuro.")
+    @Column(nullable = false)
+    private LocalDateTime endDateTime;
 
-    @Column(name = "inicio_inscricao")
-    private LocalDateTime inicioInscricao;
+    private String location;
 
-    @Column(name = "fim_inscricao")
-    private LocalDateTime fimInscricao;
+    private Integer maxAttendees;
 
-    private String local;
+    @Column(name = "is_paid")
+    private Boolean isPaid;
 
-    private Integer capacidade;
+    private BigDecimal price;
 
-    private boolean pago;
+    private Long organizerId;
 
-    private Double preco;
+    @CreationTimestamp
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime createdAt;
 
-    private String capaUrl; // link da foto de capa do evento
-
-    private String tipoEvento; // palestra, workshop, festa, etc.
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 }
