@@ -7,8 +7,15 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-# Configuração local (NÃO comitar senhas!)
+# Configurações locais (NÃO comitar senhas!)
 /src/main/resources/application.properties
+/src/main/resources/application-*.properties
+
+# Arquivos de ambiente específicos
+.env
+.env.local
+.env.development
+.env.production
 
 ### STS / Eclipse ###
 .apt_generated
