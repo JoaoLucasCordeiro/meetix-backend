@@ -5,9 +5,7 @@ import com.meetix.meetix_api.domain.event.EventRequestDTO;
 import com.meetix.meetix_api.repositories.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -24,9 +22,10 @@ public class EventService {
         newEvent.setCreatedAt(LocalDateTime.now());
         newEvent.setUpdatedAt(LocalDateTime.now());
 
-        if (data.image() != null) {
-            String imgUrl = uploadImg(data.image());
-            newEvent.setImgUrl(imgUrl);
+        if (data.imgUrl() != null && !data.imgUrl().isEmpty()) {
+            newEvent.setImgUrl(data.imgUrl());
+        } else {
+            newEvent.setImgUrl("https://placeholder.com/default-image.png");
         }
 
         return eventRepository.save(newEvent);
@@ -59,9 +58,8 @@ public class EventService {
             eventToUpdate.setOrganizerId(data.organizerId());
             eventToUpdate.setUpdatedAt(LocalDateTime.now());
 
-            if (data.image() != null) {
-                String imgUrl = uploadImg(data.image());
-                eventToUpdate.setImgUrl(imgUrl);
+            if (data.imgUrl() != null && !data.imgUrl().isEmpty()) {
+                eventToUpdate.setImgUrl(data.imgUrl());
             }
 
             return Optional.of(eventRepository.save(eventToUpdate));
@@ -88,10 +86,7 @@ public class EventService {
         event.setIsPaid(data.isPaid());
         event.setPrice(data.price());
         event.setOrganizerId(data.organizerId());
+        event.setImgUrl(data.imgUrl());
         return event;
-    }
-
-    private String uploadImg(MultipartFile multipartFile) {
-        return "";
     }
 }

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +20,7 @@ public class EventController {
     private EventService eventService;
 
     @PostMapping
-    public ResponseEntity<Event> createEvent(@ModelAttribute EventRequestDTO eventRequestDTO) {
+    public ResponseEntity<Event> createEvent(@RequestBody EventRequestDTO eventRequestDTO) {
         Event created = eventService.createEvent(eventRequestDTO);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
@@ -39,7 +38,7 @@ public class EventController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Event> updateEvent(@PathVariable UUID id, @ModelAttribute EventRequestDTO eventRequestDTO) {
+    public ResponseEntity<Event> updateEvent(@PathVariable UUID id, @RequestBody EventRequestDTO eventRequestDTO) {
         Optional<Event> updated = eventService.updateEvent(id, eventRequestDTO);
         return updated.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -49,4 +48,5 @@ public class EventController {
         eventService.deleteEvent(id);
         return ResponseEntity.noContent().build();
     }
+
 }
