@@ -1,6 +1,7 @@
 package com.meetix.meetix_api.domain.event;
-import com.meetix.meetix_api.domain.enums.EventType;
 
+import com.meetix.meetix_api.domain.enums.EventType;
+import com.meetix.meetix_api.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -60,8 +61,9 @@ public class Event {
     @Column(name = "price")
     private BigDecimal price;
 
-    @Column(name = "organizer_id")
-    private Long organizerId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organizer_id", referencedColumnName = "id_user")
+    private User organizer;
 
     @Column(name = "generate_certificate")
     private Boolean generateCertificate;
