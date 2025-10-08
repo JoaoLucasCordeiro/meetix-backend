@@ -1,11 +1,8 @@
 -- Criar extensão para UUID
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Criar schema se não existir
-CREATE SCHEMA IF NOT EXISTS meetixdev;
-
 -- Criar tabela de usuários
-CREATE TABLE meetixdev.user_account (
+CREATE TABLE user_account (
     id_user UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
@@ -19,10 +16,10 @@ CREATE TABLE meetixdev.user_account (
 );
 
 -- Criar índice para otimizar busca por email
-CREATE INDEX IF NOT EXISTS idx_user_account_email ON meetixdev.user_account(email);
+CREATE INDEX IF NOT EXISTS idx_user_account_email ON user_account(email);
 
 -- Trigger para atualizar updated_at automaticamente
-CREATE OR REPLACE FUNCTION meetixdev.update_updated_at_column()
+CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
@@ -31,6 +28,6 @@ END;
 $$ language 'plpgsql';
 
 CREATE TRIGGER update_user_account_updated_at
-    BEFORE UPDATE ON meetixdev.user_account
+    BEFORE UPDATE ON user_account
     FOR EACH ROW
-    EXECUTE FUNCTION meetixdev.update_updated_at_column();
+    EXECUTE FUNCTION update_updated_at_column();
