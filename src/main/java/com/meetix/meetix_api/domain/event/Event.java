@@ -61,7 +61,7 @@ public class Event {
     @Column(name = "price")
     private BigDecimal price;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "organizer_id", referencedColumnName = "id_user")
     private User organizer;
 
