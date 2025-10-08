@@ -1,3 +1,6 @@
+-- Garantir que a extensão UUID existe (caso não tenha sido criada na V1)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE meetixdev.event (
                                  id_event UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                                  event_type VARCHAR(50) NOT NULL,
