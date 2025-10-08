@@ -4,6 +4,7 @@ import com.meetix.meetix_api.domain.enums.EventType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record EventRequestDTO(
         EventType eventType,
@@ -18,7 +19,7 @@ public record EventRequestDTO(
         Integer maxAttendees,
         Boolean isPaid,
         BigDecimal price,
-        Long organizerId,
+        UUID organizerId,
         Boolean generateCertificate
 ) {
 }
