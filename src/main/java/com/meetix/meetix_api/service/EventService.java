@@ -2,7 +2,9 @@ package com.meetix.meetix_api.service;
 
 import com.meetix.meetix_api.domain.event.Event;
 import com.meetix.meetix_api.domain.event.EventRequestDTO;
+import com.meetix.meetix_api.domain.user.User;
 import com.meetix.meetix_api.repositories.EventRepository;
+import com.meetix.meetix_api.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +19,16 @@ public class EventService {
     @Autowired
     private EventRepository eventRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     public Event createEvent(EventRequestDTO data) {
         validateEventData(data);
 
-        Event newEvent = mapDtoToEntity(data);
+        User organizer = userRepository.findById(data.organizerId())
+                .orElseThrow(() -> new IllegalArgumentException("Organizer not found"));
+
+        Event newEvent = mapDtoToEntity(data, organizer);
         newEvent.setCreatedAt(LocalDateTime.now());
         newEvent.setUpdatedAt(LocalDateTime.now());
 
@@ -48,6 +56,9 @@ public class EventService {
         if (optionalEvent.isPresent()) {
             Event eventToUpdate = optionalEvent.get();
 
+            User organizer = userRepository.findById(data.organizerId())
+                    .orElseThrow(() -> new IllegalArgumentException("Organizer not found"));
+
             eventToUpdate.setEventType(data.eventType());
             eventToUpdate.setTitle(data.title());
             eventToUpdate.setDescription(data.description());
@@ -59,7 +70,7 @@ public class EventService {
             eventToUpdate.setMaxAttendees(data.maxAttendees());
             eventToUpdate.setIsPaid(data.isPaid());
             eventToUpdate.setPrice(data.price());
-            eventToUpdate.setOrganizerId(data.organizerId());
+            eventToUpdate.setOrganizer(organizer);
             eventToUpdate.setGenerateCertificate(data.generateCertificate());
             eventToUpdate.setUpdatedAt(LocalDateTime.now());
 
@@ -87,9 +98,12 @@ public class EventService {
                 throw new IllegalArgumentException("Location must be provided for non-remote events");
             }
         }
+        if (data.organizerId() == null) {
+            throw new IllegalArgumentException("Organizer ID is required");
+        }
     }
 
-    private Event mapDtoToEntity(EventRequestDTO data) {
+    private Event mapDtoToEntity(EventRequestDTO data, User organizer) {
         Event event = new Event();
         event.setEventType(data.eventType());
         event.setTitle(data.title());
@@ -102,7 +116,7 @@ public class EventService {
         event.setMaxAttendees(data.maxAttendees());
         event.setIsPaid(data.isPaid());
         event.setPrice(data.price());
-        event.setOrganizerId(data.organizerId());
+        event.setOrganizer(organizer);
         event.setGenerateCertificate(data.generateCertificate());
         event.setImgUrl(data.imgUrl());
         return event;
