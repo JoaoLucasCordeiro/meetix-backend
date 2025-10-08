@@ -18,6 +18,8 @@ public class EventService {
     private EventRepository eventRepository;
 
     public Event createEvent(EventRequestDTO data) {
+        validateEventData(data);
+
         Event newEvent = mapDtoToEntity(data);
         newEvent.setCreatedAt(LocalDateTime.now());
         newEvent.setUpdatedAt(LocalDateTime.now());
@@ -40,6 +42,8 @@ public class EventService {
     }
 
     public Optional<Event> updateEvent(UUID id, EventRequestDTO data) {
+        validateEventData(data);
+
         Optional<Event> optionalEvent = eventRepository.findById(id);
         if (optionalEvent.isPresent()) {
             Event eventToUpdate = optionalEvent.get();
@@ -56,6 +60,7 @@ public class EventService {
             eventToUpdate.setIsPaid(data.isPaid());
             eventToUpdate.setPrice(data.price());
             eventToUpdate.setOrganizerId(data.organizerId());
+            eventToUpdate.setGenerateCertificate(data.generateCertificate());
             eventToUpdate.setUpdatedAt(LocalDateTime.now());
 
             if (data.imgUrl() != null && !data.imgUrl().isEmpty()) {
@@ -72,6 +77,18 @@ public class EventService {
         eventRepository.deleteById(id);
     }
 
+    private void validateEventData(EventRequestDTO data) {
+        if (data.remote() != null && data.remote()) {
+            if (data.eventUrl() == null || data.eventUrl().isBlank()) {
+                throw new IllegalArgumentException("Event URL must be provided for remote events");
+            }
+        } else {
+            if (data.location() == null || data.location().isBlank()) {
+                throw new IllegalArgumentException("Location must be provided for non-remote events");
+            }
+        }
+    }
+
     private Event mapDtoToEntity(EventRequestDTO data) {
         Event event = new Event();
         event.setEventType(data.eventType());
@@ -86,6 +103,7 @@ public class EventService {
         event.setIsPaid(data.isPaid());
         event.setPrice(data.price());
         event.setOrganizerId(data.organizerId());
+        event.setGenerateCertificate(data.generateCertificate());
         event.setImgUrl(data.imgUrl());
         return event;
     }

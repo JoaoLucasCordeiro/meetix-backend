@@ -1,12 +1,12 @@
 package com.meetix.meetix_api.domain.event;
 
-import org.springframework.web.multipart.MultipartFile;
+import com.meetix.meetix_api.domain.enums.EventType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public record EventRequestDTO(
-        String eventType,
+        EventType eventType,
         String title,
         String description,
         LocalDateTime startDateTime,
@@ -19,6 +19,6 @@ public record EventRequestDTO(
         Boolean isPaid,
         BigDecimal price,
         Long organizerId,
-        MultipartFile image
+        Boolean generateCertificate
 ) {
 }

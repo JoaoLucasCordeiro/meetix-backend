@@ -1,4 +1,5 @@
 package com.meetix.meetix_api.domain.event;
+import com.meetix.meetix_api.domain.enums.EventType;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -22,8 +23,9 @@ public class Event {
     @Column(name = "id_event")
     private UUID id_event;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "event_type")
-    private String eventType;
+    private EventType eventType;
 
     @Column(name = "title")
     private String title;
@@ -60,6 +62,9 @@ public class Event {
 
     @Column(name = "organizer_id")
     private Long organizerId;
+
+    @Column(name = "generate_certificate")
+    private Boolean generateCertificate;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
