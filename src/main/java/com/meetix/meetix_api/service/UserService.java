@@ -123,9 +123,7 @@ public class UserService {
         }
     }
 
-    /**
-     * Validação para update - senha é opcional
-     */
+    // Validação para update - senha é opcional
     private void validateUserDataForUpdate(UserUpdateDTO data) {
         if (data.firstName() == null || data.firstName().isBlank()) {
             throw new IllegalArgumentException("First name is required");

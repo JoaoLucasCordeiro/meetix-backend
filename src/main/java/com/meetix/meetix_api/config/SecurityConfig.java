@@ -23,14 +23,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
-/**
- * Classe central que define a postura de segurança da aplicação.
- * Aqui configuramos quais endpoints são públicos, quais são protegidos,
- * como os tokens JWT são validados e as políticas de CORS.
- */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // Ativa a segurança a nível de método (ex: @PreAuthorize)
+@EnableMethodSecurity(prePostEnabled = true) // Ativa a segurança a nível de método
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
@@ -46,13 +41,6 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-    /**
-     * O Bean principal que configura toda a cadeia de filtros de segurança HTTP.
-     * É aqui que a "mágica" do Spring Security acontece.
-     *
-     * @param http O objeto de configuração do HttpSecurity.
-     * @return A cadeia de filtros de segurança construída.
-     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -93,11 +81,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Define o provedor de autenticação que o Spring Security usará.
-     * Ele conecta nosso CustomUserDetailsService (que busca usuários no banco)
-     * e o PasswordEncoder (que sabe como verificar as senhas).
-     */
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -106,28 +89,15 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    /**
-     * Expõe o AuthenticationManager do Spring como um Bean.
-     * Necessário para o processo de autenticação manual no nosso AuthenticationController.
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * Define o algoritmo de criptografia de senhas.
-     * Usamos o BCrypt, que é o padrão ouro atual para hashing de senhas.
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-    /**
-     * Configura a política de CORS (Cross-Origin Resource Sharing) para a aplicação.
-     * Essencial para permitir que um frontend hospedado em um domínio diferente acesse esta API.
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

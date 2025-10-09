@@ -18,11 +18,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * Filtro de segurança que atua como o "porteiro" da nossa API.
- * Ele intercepta todas as requisições para verificar se elas contêm um token JWT válido,
- * garantindo que apenas usuários autenticados acessem os endpoints protegidos.
- */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -31,24 +26,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
 
-    /**
-     * Construtor para injeção de dependências.
-     * Esta é a forma recomendada pelo Spring para injetar os serviços necessários.
-     */
     @Autowired
     public JwtAuthenticationFilter(JwtService jwtService, CustomUserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
     }
 
-    /**
-     * O coração do filtro. Este método é executado para cada requisição que passa por ele.
-     * A lógica principal de validação do token acontece aqui.
-     *
-     * @param request A requisição HTTP que chegou.
-     * @param response A resposta HTTP que será enviada.
-     * @param filterChain Objeto que nos permite passar a requisição para o próximo filtro na cadeia.
-     */
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -106,13 +89,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Define para quais requisições este filtro NÃO deve ser aplicado.
-     * Usamos este método para criar uma "lista branca" de endpoints públicos.
-     *
-     * @param request A requisição HTTP que chegou.
-     * @return true se o filtro deve ser pulado, false se deve ser aplicado.
-     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();

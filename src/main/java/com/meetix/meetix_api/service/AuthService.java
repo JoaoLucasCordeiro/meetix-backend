@@ -19,18 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-/**
- * Serviço responsável pela autenticação e autorização de usuários.
- * 
- * Este serviço gerencia:
- * - Login de usuários com validação de credenciais
- * - Registro de novos usuários
- * - Geração de tokens JWT
- * - Validação de tokens existentes
- * 
- * @author Meetix Team
- * @version 1.0
- */
 @Service
 @Transactional
 public class AuthService {
@@ -55,13 +43,8 @@ public class AuthService {
         this.authenticationManager = authenticationManager;
     }
 
-    /**
-     * Realiza o login do usuário com email e senha.
-     *
-     * @param loginRequest Dados de login (email e senha)
-     * @return Resposta com token JWT e dados do usuário
-     * @throws JwtAuthenticationException se as credenciais forem inválidas
-     */
+    // Realiza o login do usuário com email e senha.
+
     public LoginResponseDTO login(LoginRequestDTO loginRequest) {
         logger.debug("Tentativa de login para email: {}", loginRequest.email());
 
@@ -105,13 +88,8 @@ public class AuthService {
         }
     }
 
-    /**
-     * Registra um novo usuário no sistema.
-     *
-     * @param userRequest Dados do usuário para registro
-     * @return Resposta com token JWT e dados do usuário criado
-     * @throws JwtAuthenticationException se o email já estiver em uso
-     */
+    // Registra um novo usuário no sistema.
+
     public LoginResponseDTO register(UserRequestDTO userRequest) {
         logger.debug("Tentativa de registro para email: {}", userRequest.email());
 
@@ -161,24 +139,15 @@ public class AuthService {
         }
     }
 
-    /**
-     * Busca um usuário pelo email.
-     *
-     * @param email Email do usuário
-     * @return Usuário encontrado ou Optional vazio
-     */
+    // Busca um usuário pelo email.
+
     @Transactional(readOnly = true)
     public Optional<User> findUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    /**
-     * Valida se um token JWT é válido para um usuário específico.
-     *
-     * @param token Token JWT
-     * @param email Email do usuário
-     * @return true se o token é válido, false caso contrário
-     */
+    // Valida se um token JWT é válido para um usuário específico.
+
     public boolean validateToken(String token, String email) {
         try {
             String tokenEmail = jwtService.extractEmail(token);
@@ -189,13 +158,8 @@ public class AuthService {
         }
     }
 
-    /**
-     * Extrai informações do usuário a partir de um token JWT válido.
-     *
-     * @param token Token JWT
-     * @return Dados do usuário extraídos do token
-     * @throws JwtAuthenticationException se o token for inválido
-     */
+    // Extrai informações do usuário a partir de um token JWT válido.
+
     public LoginResponseDTO getUserFromToken(String token) {
         try {
             return new LoginResponseDTO(
