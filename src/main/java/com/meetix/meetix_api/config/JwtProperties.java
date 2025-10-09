@@ -1,86 +1,50 @@
 package com.meetix.meetix_api.config;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * Configurações específicas para JWT.
- * 
- * Esta classe centraliza todas as propriedades relacionadas ao JWT,
- * permitindo fácil configuração através do application.properties.
+ * Mapeia e centraliza as configurações de JWT a partir do application.properties.
+ * Utiliza o prefixo "jwt" para vincular as propriedades. Ex: jwt.secret=sua_chave
  */
 @Component
 @ConfigurationProperties(prefix = "jwt")
+@Data // Anotação do Lombok que cria todos os getters e setters para nós.
 public class JwtProperties {
 
     /**
-     * Chave secreta para assinatura dos tokens.
-     * Em produção, deve ser uma chave forte e única.
+     * Chave secreta usada para assinar e validar os tokens JWT.
+     * IMPORTANTE: Este valor padrão é apenas para desenvolvimento.
+     * Em produção, ele DEVE ser substituído por uma chave forte e segura no application.properties.
      */
     private String secret = "bWVldGl4LXNlY3JldC1rZXktZm9yLWp3dC10b2tlbi1zaWduaW5nLW1lZXRpeC1hcGktdjEtMjAyNQ==";
 
     /**
-     * Tempo de expiração do token em milissegundos.
-     * Valor padrão: 24 horas (86400000 ms).
+     * Define o tempo de vida de um token de acesso padrão, em milissegundos.
+     * Padrão: 24 horas.
      */
-    private long expiration = 86400000L; // 24 horas
+    private long expiration = 86400000L; // 24 * 60 * 60 * 1000
 
     /**
-     * Tempo de expiração para refresh tokens em milissegundos.
-     * Valor padrão: 7 dias (604800000 ms).
+     * Define o tempo de vida de um "refresh token", em milissegundos.
+     * Usado para obter um novo token de acesso sem precisar fazer login novamente.
+     * Padrão: 7 dias.
      */
-    private long refreshExpiration = 604800000L; // 7 dias
+    private long refreshExpiration = 604800000L; // 7 * 24 * 60 * 60 * 1000
 
     /**
-     * Prefixo para o header Authorization.
-     * Valor padrão: "Bearer ".
+     * Prefixo padrão que antecede o token no header HTTP.
+     * Padrão: "Bearer ".
      */
     private String tokenPrefix = "Bearer ";
 
     /**
-     * Nome do header que contém o token.
-     * Valor padrão: "Authorization".
+     * Nome do header HTTP onde o token JWT é esperado.
+     * Padrão: "Authorization".
      */
     private String headerName = "Authorization";
 
-    // Getters e Setters
-    public String getSecret() {
-        return secret;
-    }
-
-    public void setSecret(String secret) {
-        this.secret = secret;
-    }
-
-    public long getExpiration() {
-        return expiration;
-    }
-
-    public void setExpiration(long expiration) {
-        this.expiration = expiration;
-    }
-
-    public long getRefreshExpiration() {
-        return refreshExpiration;
-    }
-
-    public void setRefreshExpiration(long refreshExpiration) {
-        this.refreshExpiration = refreshExpiration;
-    }
-
-    public String getTokenPrefix() {
-        return tokenPrefix;
-    }
-
-    public void setTokenPrefix(String tokenPrefix) {
-        this.tokenPrefix = tokenPrefix;
-    }
-
-    public String getHeaderName() {
-        return headerName;
-    }
-
-    public void setHeaderName(String headerName) {
-        this.headerName = headerName;
-    }
+    // Não precisamos mais dos getters e setters manuais.
+    // O @Data cuida disso para nós!
 }
