@@ -23,7 +23,7 @@ public class EventService {
 
     @Autowired
     private UserRepository userRepository;
-
+// ver logica de service e repository
     public Event createEvent(EventRequestDTO data) {
         validateEventData(data);
 
