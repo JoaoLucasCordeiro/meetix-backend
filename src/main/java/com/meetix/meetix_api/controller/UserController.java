@@ -20,15 +20,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * Controller responsável pelos endpoints de usuários.
- * 
- * IMPORTANTE: Este controller deve ser usado apenas para operações administrativas.
- * Para registro de usuários, use o AuthController (/auth/register).
- * 
- * @author Meetix Team
- * @version 1.0
- */
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -66,9 +57,8 @@ public class UserController {
         }
     }
 
-    /**
-     * Obtém o email do usuário autenticado.
-     */
+    // Obtem o email do usuário autenticado.
+
     private String getAuthenticatedUserEmail() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -82,11 +72,8 @@ public class UserController {
             return null;
         }
     }
+     // Criar usuário (endpoint administrativo).
 
-    /**
-     * Criar usuário (endpoint administrativo).
-     * Para registro normal, use /auth/register.
-     */
     @PostMapping
     @PreAuthorize("isAuthenticated()") // Temporário: usuários autenticados podem criar
     public ResponseEntity<?> createUser(@RequestBody UserRequestDTO userRequestDTO) {
@@ -109,10 +96,8 @@ public class UserController {
         }
     }
 
-    /**
-     * Endpoint para o usuário obter suas próprias informações.
-     * Mais seguro que buscar por ID, pois usa o token JWT.
-     */
+
+     // Endpoint para o usuário obter suas próprias informações.
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getMyProfile() {
@@ -320,12 +305,7 @@ public class UserController {
         }
     }
 
-    // ========== ENDPOINTS SEGUROS BASEADOS EM TOKEN JWT ==========
-
-    /**
-     * Endpoint para o usuário atualizar sua própria conta (sem precisar do ID).
-     * Usa o token JWT para identificar o usuário automaticamente.
-     */
+     // Endpoint para o usuário atualizar sua própria conta (sem precisar do ID).
     @PutMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> updateMyProfile(@RequestBody UserUpdateDTO userUpdateDTO) {
@@ -380,10 +360,8 @@ public class UserController {
         }
     }
 
-    /**
-     * Endpoint para o usuário deletar sua própria conta (sem precisar do ID).
-     * Usa o token JWT para identificar o usuário automaticamente.
-     */
+      // Endpoint para o usuário deletar sua própria conta (sem precisar do ID).
+
     @DeleteMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> deleteMyAccount() {

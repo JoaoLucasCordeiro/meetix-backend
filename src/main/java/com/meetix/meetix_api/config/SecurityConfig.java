@@ -23,27 +23,15 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
-/**
- * Configuração de segurança do Spring Security.
- * 
- * Esta classe configura:
- * - Autenticação JWT
- * - Autorização de endpoints
- * - CORS para requisições cross-origin
- * - Desabilita CSRF (não necessário para APIs REST)
- * - Sessões stateless (sem estado no servidor)
- * 
- * @author Meetix Team
- * @version 1.0
- */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true) // Ativa a segurança a nível de método
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    // Injeção de dependências via construtor, a prática recomendada pelo Spring.
     @Autowired
     public SecurityConfig(
             CustomUserDetailsService userDetailsService,
@@ -53,63 +41,46 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
-    /**
-     * Configura a cadeia de filtros de segurança.
-     * 
-     * @param http Configuração HTTP Security
-     * @return SecurityFilterChain configurada
-     * @throws Exception Em caso de erro na configuração
-     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Desabilita CSRF (não necessário para APIs REST)
+                // 1. Desativa a proteção CSRF, pois não é necessária para APIs REST stateless.
                 .csrf(AbstractHttpConfigurer::disable)
-                
-                // Configura CORS
+
+                // 2. Aplica as configurações de CORS definidas no bean corsConfigurationSource.
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                
-                // Configura autorização de requests - ORDEM IMPORTA!
+
+                // 3. Define as regras de autorização para cada endpoint. A ORDEM É CRÍTICA!
                 .authorizeHttpRequests(authz -> authz
-                        // Endpoints públicos PRIMEIRO - não requerem autenticação
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/", "/health", "/actuator/**").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll() // Para desenvolvimento
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // Swagger
-                        
-                        // Endpoints de eventos - TOTALMENTE PÚBLICOS
-                        .requestMatchers(HttpMethod.GET, "/events").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/events/**").permitAll()
-                        
-                        // Outros endpoints de eventos requerem autenticação
+                        // Endpoints públicos que não exigem autenticação.
+                        .requestMatchers("/auth/**", "/health", "/actuator/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // Documentação da API
+
+                        // Permite que qualquer um visualize eventos (GET), mas protege as outras operações (POST, PUT, DELETE).
+                        .requestMatchers(HttpMethod.GET, "/events", "/events/**").permitAll()
+
+                        // Qualquer outra requisição para /events/** (POST, PUT, DELETE) precisa de autenticação.
                         .requestMatchers("/events/**").authenticated()
-                        
-                        // Todos os outros endpoints requerem autenticação
+
+                        // 4. Garante que todas as outras requisições não listadas acima exijam autenticação.
                         .anyRequest().authenticated()
                 )
-                
-                // Configura sessões como stateless (sem estado no servidor)
+
+                // 5. Configura o gerenciamento de sessão para ser "stateless".
+                // Isso significa que o servidor não guarda estado de sessão; cada requisição é autenticada por si só (via JWT).
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                
-                // Adiciona o filtro JWT antes do filtro de autenticação padrão
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                
-                // Configura o provider de autenticação
-                .authenticationProvider(authenticationProvider());
 
-        // Desabilita frame options para H2 Console (apenas desenvolvimento)
-        http.headers(headers -> headers.frameOptions().disable());
+                // 6. Define nosso provedor de autenticação customizado.
+                .authenticationProvider(authenticationProvider())
+
+                // 7. Adiciona nosso filtro de JWT para rodar antes do filtro padrão de username/password do Spring.
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    /**
-     * Configura o provider de autenticação com UserDetailsService e PasswordEncoder.
-     * 
-     * @return DaoAuthenticationProvider configurado
-     */
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -118,56 +89,36 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    /**
-     * Configura o gerenciador de autenticação.
-     * 
-     * @param config Configuração de autenticação
-     * @return AuthenticationManager
-     * @throws Exception Em caso de erro na configuração
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * Configura o encoder de senha usando BCrypt.
-     * 
-     * @return PasswordEncoder BCrypt
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-    /**
-     * Configura CORS para permitir requisições de diferentes origens.
-     * 
-     * @return CorsConfigurationSource configurada
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
-        // Permite todas as origens (para desenvolvimento)
-        // Em produção, especifique as origens permitidas
+
+        // Em desenvolvimento, permitir qualquer origem é aceitável.
+        // Em produção, restrinja isso a domínios específicos! Ex: "https://meufrontend.com"
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-        
-        // Métodos HTTP permitidos
+
+        // Define os métodos HTTP que são permitidos (GET, POST, etc.).
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        
-        // Headers permitidos
+
+        // Define quais headers a requisição pode conter.
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        
-        // Permite credentials (cookies, authorization headers, etc.)
+
+        // Permite que o navegador envie credenciais (como cookies ou tokens de autenticação).
         configuration.setAllowCredentials(true);
-        
-        // Headers expostos na resposta
-        configuration.setExposedHeaders(Arrays.asList("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // Aplica esta configuração de CORS para todas as rotas da nossa API.
         source.registerCorsConfiguration("/**", configuration);
-        
+
         return source;
     }
 }

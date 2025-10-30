@@ -15,20 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-/**
- * Controller responsável pelos endpoints de autenticação.
- * 
- * Este controller fornece:
- * - Endpoint de login (/auth/login)
- * - Endpoint de registro (/auth/register)
- * - Endpoint de validação de token (/auth/validate)
- * - Tratamento centralizado de exceções de autenticação
- * 
- * Todos os endpoints retornam respostas padronizadas JSON.
- * 
- * @author Meetix Team
- * @version 1.0
- */
 @RestController
 @RequestMapping("/auth")
 @CrossOrigin(origins = "*")
@@ -43,12 +29,8 @@ public class AuthController {
         this.authService = authService;
     }
 
-    /**
-     * Endpoint para login de usuário.
-     * 
-     * @param loginRequest Dados de login (email e senha)
-     * @return ResponseEntity com token JWT e dados do usuário ou erro
-     */
+    // Endpoint para login de usuário.
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO loginRequest) {
         logger.info("Recebida requisição de login para email: {}", loginRequest.email());
@@ -84,12 +66,8 @@ public class AuthController {
         }
     }
 
-    /**
-     * Endpoint para registro de novo usuário.
-     * 
-     * @param userRequest Dados do usuário para registro
-     * @return ResponseEntity com token JWT e dados do usuário criado ou erro
-     */
+    // Endpoint para registro de novo usuário.
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody UserRequestDTO userRequest) {
         logger.info("Recebida requisição de registro para email: {}", userRequest.email());
@@ -125,12 +103,8 @@ public class AuthController {
         }
     }
 
-    /**
-     * Endpoint para validação de token JWT.
-     * 
-     * @param token Token JWT no header Authorization
-     * @return ResponseEntity com dados do usuário se token válido ou erro
-     */
+    // Endpoint para validação de token JWT.
+
     @GetMapping("/validate")
     public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
         logger.debug("Recebida requisição de validação de token");
@@ -171,11 +145,8 @@ public class AuthController {
         }
     }
 
-    /**
-     * Endpoint para logout (opcional - apenas remove token do lado cliente).
-     * 
-     * @return ResponseEntity com mensagem de sucesso
-     */
+    // Endpoint para logout (opcional - apenas remove token do lado cliente).
+
     @PostMapping("/logout")
     public ResponseEntity<?> logout() {
         logger.info("Recebida requisição de logout");
@@ -187,11 +158,8 @@ public class AuthController {
         ));
     }
 
-    /**
-     * Endpoint de health check para verificar se o serviço de autenticação está funcionando.
-     * 
-     * @return ResponseEntity com status do serviço
-     */
+    // Endpoint de health check para verificar se o serviço de autenticação está funcionando.
+
     @GetMapping("/health")
     public ResponseEntity<?> health() {
         return ResponseEntity.ok(Map.of(
@@ -201,12 +169,8 @@ public class AuthController {
         ));
     }
 
-    /**
-     * Tratamento global de exceções para este controller.
-     * 
-     * @param e Exceção capturada
-     * @return ResponseEntity com mensagem de erro padronizada
-     */
+    // Tratamento global de exceções para este controller.
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGlobalException(Exception e) {
         logger.error("Exceção não tratada no AuthController: {}", e.getMessage(), e);

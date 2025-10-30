@@ -12,15 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 
-/**
- * Implementação customizada do UserDetailsService para integração com Spring Security.
- * 
- * Este serviço é responsável por carregar os dados do usuário durante o processo
- * de autenticação. O Spring Security usa esta classe para validar credenciais.
- * 
- * @author Meetix Team
- * @version 1.0
- */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
@@ -33,13 +24,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         this.userRepository = userRepository;
     }
 
-    /**
-     * Carrega os dados do usuário pelo email (usado como username).
-     * 
-     * @param email Email do usuário (usado como username)
-     * @return UserDetails com as informações do usuário
-     * @throws UsernameNotFoundException se o usuário não for encontrado
-     */
+    // Carrega os dados do usuário pelo email (usado como username).
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         logger.debug("Carregando dados do usuário para email: {}", email);
