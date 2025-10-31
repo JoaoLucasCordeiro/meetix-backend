@@ -1,6 +1,5 @@
 package com.meetix.meetix_api.domain.event;
 
-import com.meetix.meetix_api.domain.enums.EventType;
 import com.meetix.meetix_api.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,26 +20,24 @@ import java.util.UUID;
 public class Event {
     @Id
     @GeneratedValue
-    @Column(name = "id_event")
-    private UUID id_event;
+    private UUID id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "event_type")
+    @Column(name = "event_type", nullable = false)
     private EventType eventType;
 
-    @Column(name = "title")
+    @Column(nullable = false)
     private String title;
 
-    @Column(name = "description")
+    @Column(length = 2000)
     private String description;
 
-    @Column(name = "start_date_time")
+    @Column(name = "start_date_time", nullable = false)
     private LocalDateTime startDateTime;
 
-    @Column(name = "end_date_time")
+    @Column(name = "end_date_time", nullable = false)
     private LocalDateTime endDateTime;
 
-    @Column(name = "location")
     private String location;
 
     @Column(name = "img_url")
@@ -49,28 +46,44 @@ public class Event {
     @Column(name = "event_url")
     private String eventUrl;
 
-    @Column(name = "remote")
-    private Boolean remote;
+    @Column(nullable = false)
+    private Boolean remote = false;
 
     @Column(name = "max_attendees")
     private Integer maxAttendees;
 
-    @Column(name = "is_paid")
-    private Boolean isPaid;
+    @Column(name = "is_paid", nullable = false)
+    private Boolean isPaid = false;
 
-    @Column(name = "price")
     private BigDecimal price;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "organizer_id", referencedColumnName = "id_user")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organizer_id", nullable = false)
     private User organizer;
 
-    @Column(name = "generate_certificate")
-    private Boolean generateCertificate;
+    @Column(name = "generate_certificate", nullable = false)
+    private Boolean generateCertificate = false;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if (remote == null) remote = false;
+        if (isPaid == null) isPaid = false;
+        if (generateCertificate == null) generateCertificate = false;
+        if (imgUrl == null || imgUrl.isBlank()) {
+            imgUrl = "https://placeholder.com/default-image.png";
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
