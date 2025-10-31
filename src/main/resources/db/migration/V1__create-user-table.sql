@@ -1,9 +1,7 @@
--- Criar extensão para UUID
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Criar tabela de usuários
 CREATE TABLE user_account (
-    id_user UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -15,10 +13,8 @@ CREATE TABLE user_account (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Criar índice para otimizar busca por email
 CREATE INDEX IF NOT EXISTS idx_user_account_email ON user_account(email);
 
--- Trigger para atualizar updated_at automaticamente
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
