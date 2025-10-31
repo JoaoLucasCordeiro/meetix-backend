@@ -1,4 +1,4 @@
-package com.meetix.meetix_api.domain.enums;
+package com.meetix.meetix_api.domain.event;
 
 public enum EventType {
     WORKSHOP,
