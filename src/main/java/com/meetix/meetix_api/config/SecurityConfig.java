@@ -39,7 +39,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/auth/**", "/health", "/actuator/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/event-participants/event/**").permitAll()
                         .requestMatchers("/api/events/**").authenticated()
