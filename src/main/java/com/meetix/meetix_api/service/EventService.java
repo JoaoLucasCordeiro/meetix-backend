@@ -2,111 +2,97 @@ package com.meetix.meetix_api.service;
 
 import com.meetix.meetix_api.domain.event.Event;
 import com.meetix.meetix_api.domain.event.EventRequestDTO;
+import com.meetix.meetix_api.domain.event.EventResponseDTO;
+import com.meetix.meetix_api.domain.event.EventUpdateDTO;
 import com.meetix.meetix_api.domain.user.User;
+import com.meetix.meetix_api.exception.ResourceNotFoundException;
+import com.meetix.meetix_api.exception.ValidationException;
 import com.meetix.meetix_api.repositories.EventRepository;
 import com.meetix.meetix_api.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 public class EventService {
 
-    @Autowired
-    private EventRepository eventRepository;
+    private final EventRepository eventRepository;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private UserRepository userRepository;
-// ver logica de service e repository
-    public Event createEvent(EventRequestDTO data) {
-        validateEventData(data);
+    @Transactional
+    public EventResponseDTO createEvent(EventRequestDTO data) {
+        validateEventBusinessRules(data);
 
         User organizer = userRepository.findById(data.organizerId())
-                .orElseThrow(() -> new IllegalArgumentException("Organizer not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Organizador não encontrado com ID: " + data.organizerId()));
 
-        Event newEvent = mapDtoToEntity(data, organizer);
-        newEvent.setCreatedAt(LocalDateTime.now());
-        newEvent.setUpdatedAt(LocalDateTime.now());
+        Event newEvent = new Event();
+        newEvent.setEventType(data.eventType());
+        newEvent.setTitle(data.title());
+        newEvent.setDescription(data.description());
+        newEvent.setStartDateTime(data.startDateTime());
+        newEvent.setEndDateTime(data.endDateTime());
+        newEvent.setLocation(data.location());
+        newEvent.setEventUrl(data.eventUrl());
+        newEvent.setRemote(data.remote() != null ? data.remote() : false);
+        newEvent.setMaxAttendees(data.maxAttendees());
+        newEvent.setIsPaid(data.isPaid() != null ? data.isPaid() : false);
+        newEvent.setPrice(data.price());
+        newEvent.setOrganizer(organizer);
+        newEvent.setGenerateCertificate(data.generateCertificate() != null ? data.generateCertificate() : false);
+        newEvent.setImgUrl(data.imgUrl());
 
-        if (data.imgUrl() != null && !data.imgUrl().isEmpty()) {
-            newEvent.setImgUrl(data.imgUrl());
-        } else {
-            newEvent.setImgUrl("https://placeholder.com/default-image.png");
+        Event savedEvent = eventRepository.save(newEvent);
+        return EventResponseDTO.fromEntity(savedEvent);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventResponseDTO> getAllEvents() {
+        return eventRepository.findAll()
+                .stream()
+                .map(EventResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public EventResponseDTO getEventById(UUID id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado com ID: " + id));
+        return EventResponseDTO.fromEntity(event);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventResponseDTO> getEventsByOrganizer(UUID organizerId) {
+        if (!userRepository.existsById(organizerId)) {
+            throw new ResourceNotFoundException("Organizador não encontrado com ID: " + organizerId);
         }
-
-        return eventRepository.save(newEvent);
+        return eventRepository.findByOrganizerId(organizerId)
+                .stream()
+                .map(EventResponseDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 
-    public List<Event> getAllEvents() {
-        return eventRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<EventResponseDTO> getUpcomingEvents() {
+        return eventRepository.findUpcomingEvents(LocalDateTime.now())
+                .stream()
+                .map(EventResponseDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 
-    public Optional<Event> getEventById(UUID id) {
-        return eventRepository.findById(id);
-    }
+    @Transactional
+    public EventResponseDTO updateEvent(UUID id, EventUpdateDTO data) {
+        validateEventBusinessRules(data);
 
-    public Optional<Event> updateEvent(UUID id, EventRequestDTO data) {
-        validateEventData(data);
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado com ID: " + id));
 
-        Optional<Event> optionalEvent = eventRepository.findById(id);
-        if (optionalEvent.isPresent()) {
-            Event eventToUpdate = optionalEvent.get();
-
-            User organizer = userRepository.findById(data.organizerId())
-                    .orElseThrow(() -> new IllegalArgumentException("Organizer not found"));
-
-            eventToUpdate.setEventType(data.eventType());
-            eventToUpdate.setTitle(data.title());
-            eventToUpdate.setDescription(data.description());
-            eventToUpdate.setStartDateTime(data.startDateTime());
-            eventToUpdate.setEndDateTime(data.endDateTime());
-            eventToUpdate.setLocation(data.location());
-            eventToUpdate.setEventUrl(data.eventUrl());
-            eventToUpdate.setRemote(data.remote());
-            eventToUpdate.setMaxAttendees(data.maxAttendees());
-            eventToUpdate.setIsPaid(data.isPaid());
-            eventToUpdate.setPrice(data.price());
-            eventToUpdate.setOrganizer(organizer);
-            eventToUpdate.setGenerateCertificate(data.generateCertificate());
-            eventToUpdate.setUpdatedAt(LocalDateTime.now());
-
-            if (data.imgUrl() != null && !data.imgUrl().isEmpty()) {
-                eventToUpdate.setImgUrl(data.imgUrl());
-            }
-
-            return Optional.of(eventRepository.save(eventToUpdate));
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    public void deleteEvent(UUID id) {
-        eventRepository.deleteById(id);
-    }
-
-    private void validateEventData(EventRequestDTO data) {
-        if (data.remote() != null && data.remote()) {
-            if (data.eventUrl() == null || data.eventUrl().isBlank()) {
-                throw new IllegalArgumentException("Event URL must be provided for remote events");
-            }
-        } else {
-            if (data.location() == null || data.location().isBlank()) {
-                throw new IllegalArgumentException("Location must be provided for non-remote events");
-            }
-        }
-        if (data.organizerId() == null) {
-            throw new IllegalArgumentException("Organizer ID is required");
-        }
-    }
-
-    private Event mapDtoToEntity(EventRequestDTO data, User organizer) {
-        Event event = new Event();
         event.setEventType(data.eventType());
         event.setTitle(data.title());
         event.setDescription(data.description());
@@ -114,13 +100,69 @@ public class EventService {
         event.setEndDateTime(data.endDateTime());
         event.setLocation(data.location());
         event.setEventUrl(data.eventUrl());
-        event.setRemote(data.remote());
+        event.setRemote(data.remote() != null ? data.remote() : false);
         event.setMaxAttendees(data.maxAttendees());
-        event.setIsPaid(data.isPaid());
+        event.setIsPaid(data.isPaid() != null ? data.isPaid() : false);
         event.setPrice(data.price());
-        event.setOrganizer(organizer);
-        event.setGenerateCertificate(data.generateCertificate());
-        event.setImgUrl(data.imgUrl());
-        return event;
+        event.setGenerateCertificate(data.generateCertificate() != null ? data.generateCertificate() : false);
+        
+        if (data.imgUrl() != null) {
+            event.setImgUrl(data.imgUrl());
+        }
+
+        Event updatedEvent = eventRepository.save(event);
+        return EventResponseDTO.fromEntity(updatedEvent);
+    }
+
+    @Transactional
+    public void deleteEvent(UUID id) {
+        if (!eventRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Evento não encontrado com ID: " + id);
+        }
+        eventRepository.deleteById(id);
+    }
+
+    private void validateEventBusinessRules(EventRequestDTO data) {
+        if (data.endDateTime().isBefore(data.startDateTime())) {
+            throw new ValidationException("Data de término deve ser posterior à data de início");
+        }
+
+        if (Boolean.TRUE.equals(data.remote())) {
+            if (data.eventUrl() == null || data.eventUrl().isBlank()) {
+                throw new ValidationException("URL do evento é obrigatória para eventos remotos");
+            }
+        } else {
+            if (data.location() == null || data.location().isBlank()) {
+                throw new ValidationException("Localização é obrigatória para eventos presenciais");
+            }
+        }
+
+        if (Boolean.TRUE.equals(data.isPaid())) {
+            if (data.price() == null || data.price().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                throw new ValidationException("Preço é obrigatório e deve ser maior que zero para eventos pagos");
+            }
+        }
+    }
+
+    private void validateEventBusinessRules(EventUpdateDTO data) {
+        if (data.endDateTime().isBefore(data.startDateTime())) {
+            throw new ValidationException("Data de término deve ser posterior à data de início");
+        }
+
+        if (Boolean.TRUE.equals(data.remote())) {
+            if (data.eventUrl() == null || data.eventUrl().isBlank()) {
+                throw new ValidationException("URL do evento é obrigatória para eventos remotos");
+            }
+        } else {
+            if (data.location() == null || data.location().isBlank()) {
+                throw new ValidationException("Localização é obrigatória para eventos presenciais");
+            }
+        }
+
+        if (Boolean.TRUE.equals(data.isPaid())) {
+            if (data.price() == null || data.price().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                throw new ValidationException("Preço é obrigatório e deve ser maior que zero para eventos pagos");
+            }
+        }
     }
 }
