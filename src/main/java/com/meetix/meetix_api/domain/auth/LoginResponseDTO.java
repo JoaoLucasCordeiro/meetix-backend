@@ -8,5 +8,4 @@ public record LoginResponseDTO(
         String email,
         String firstName,
         String lastName
-) {
-}
+) {}
