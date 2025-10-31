@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: meetix-postgres
+    environment:
+      POSTGRES_DB: meetixdev
+      POSTGRES_USER: joaolucasdev
+      POSTGRES_PASSWORD: 1618
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - meetix-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U joaolucasdev -d meetixdev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicação Spring Boot
+  meetix-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: meetix-api
+    environment:
+      # Configurações do banco - usar nome do serviço 'postgres'
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/meetixdev
+      SPRING_DATASOURCE_USERNAME: joaolucasdev
+      SPRING_DATASOURCE_PASSWORD: 1618
+      
+      # Configurações JPA
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+      
+      # Configurações Flyway
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+      SPRING_FLYWAY_VALIDATE_ON_MIGRATE: "false"
+      
+      # Porta do servidor
+      SERVER_PORT: 8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - meetix-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  meetix-network:
+    driver: bridge
