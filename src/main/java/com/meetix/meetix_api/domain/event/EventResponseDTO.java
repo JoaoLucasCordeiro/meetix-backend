@@ -1,7 +1,5 @@
 package com.meetix.meetix_api.domain.event;
 
-import com.meetix.meetix_api.domain.user.UserResponseDTO;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
