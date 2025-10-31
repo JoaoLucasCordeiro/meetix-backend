@@ -19,23 +19,28 @@ import java.util.UUID;
 public class EventParticipant {
     @Id
     @GeneratedValue
-    @Column(name = "id_event_participant")
-    private UUID id_event_participant;
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id", referencedColumnName = "id_event")
+    @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id_user")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "registration_date")
+    @Column(name = "registration_date", nullable = false, updatable = false)
     private LocalDateTime registrationDate;
 
-    @Column(name = "attended")
-    private Boolean attended;
+    @Column(nullable = false)
+    private Boolean attended = false;
 
     @Column(name = "checked_in_at")
     private LocalDateTime checkedInAt;
+
+    @PrePersist
+    protected void onCreate() {
+        registrationDate = LocalDateTime.now();
+        if (attended == null) attended = false;
+    }
 }
