@@ -3,6 +3,9 @@ package com.meetix.meetix_api.controller;
 import com.meetix.meetix_api.domain.event.EventParticipantRequestDTO;
 import com.meetix.meetix_api.domain.event.EventParticipantResponseDTO;
 import com.meetix.meetix_api.service.EventParticipantService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,11 +19,14 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/event-participants")
 @RequiredArgsConstructor
+@Tag(name = "Participação em Eventos", description = "Gerenciamento de participações em eventos")
+@SecurityRequirement(name = "bearerAuth")
 public class EventParticipantController {
 
     private final EventParticipantService participantService;
 
     @PostMapping("/register")
+    @Operation(summary = "Inscrever em evento", description = "Registra um usuário em um evento")
     public ResponseEntity<EventParticipantResponseDTO> registerParticipant(
             @Valid @RequestBody EventParticipantRequestDTO data
     ) {
@@ -29,6 +35,7 @@ public class EventParticipantController {
     }
 
     @DeleteMapping("/cancel")
+    @Operation(summary = "Cancelar inscrição", description = "Cancela a participação de um usuário em um evento")
     public ResponseEntity<Void> cancelRegistration(
             @RequestParam UUID eventId,
             @RequestParam UUID userId
@@ -38,6 +45,7 @@ public class EventParticipantController {
     }
 
     @GetMapping("/event/{eventId}")
+    @Operation(summary = "Listar participantes de evento", description = "Retorna todos os participantes de um evento")
     public ResponseEntity<List<EventParticipantResponseDTO>> getEventParticipants(
             @PathVariable UUID eventId
     ) {
@@ -46,6 +54,7 @@ public class EventParticipantController {
     }
 
     @GetMapping("/user/{userId}")
+    @Operation(summary = "Listar eventos do usuário", description = "Retorna todos os eventos que um usuário está participando")
     public ResponseEntity<List<EventParticipantResponseDTO>> getUserEvents(
             @PathVariable UUID userId
     ) {
@@ -54,6 +63,7 @@ public class EventParticipantController {
     }
 
     @PostMapping("/check-in")
+    @Operation(summary = "Fazer check-in", description = "Registra presença de um participante no evento")
     public ResponseEntity<EventParticipantResponseDTO> checkIn(
             @RequestParam UUID eventId,
             @RequestParam UUID userId
@@ -63,6 +73,7 @@ public class EventParticipantController {
     }
 
     @GetMapping("/is-registered")
+    @Operation(summary = "Verificar inscrição", description = "Verifica se um usuário está inscrito em um evento")
     public ResponseEntity<Map<String, Boolean>> isUserRegistered(
             @RequestParam UUID eventId,
             @RequestParam UUID userId
@@ -72,6 +83,7 @@ public class EventParticipantController {
     }
 
     @GetMapping("/count/{eventId}")
+    @Operation(summary = "Contar participantes", description = "Retorna número de participantes de um evento")
     public ResponseEntity<Map<String, Long>> getParticipantCount(
             @PathVariable UUID eventId
     ) {
@@ -80,6 +92,7 @@ public class EventParticipantController {
     }
 
     @GetMapping("/attended/{eventId}")
+    @Operation(summary = "Listar presenças confirmadas", description = "Retorna participantes que fizeram check-in")
     public ResponseEntity<List<EventParticipantResponseDTO>> getAttendedParticipants(
             @PathVariable UUID eventId
     ) {
