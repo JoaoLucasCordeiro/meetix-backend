@@ -2,161 +2,98 @@ package com.meetix.meetix_api.service;
 
 import com.meetix.meetix_api.domain.user.User;
 import com.meetix.meetix_api.domain.user.UserRequestDTO;
+import com.meetix.meetix_api.domain.user.UserResponseDTO;
 import com.meetix.meetix_api.domain.user.UserUpdateDTO;
+import com.meetix.meetix_api.exception.EmailAlreadyExistsException;
+import com.meetix.meetix_api.exception.ResourceNotFoundException;
 import com.meetix.meetix_api.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public User createUser(UserRequestDTO data) {
-        validateUserData(data);
-
+    @Transactional
+    public UserResponseDTO createUser(UserRequestDTO data) {
         if (userRepository.existsByEmail(data.email())) {
-            throw new IllegalArgumentException("Email already registered");
+            throw new EmailAlreadyExistsException(data.email());
         }
 
-        User newUser = mapDtoToEntity(data);
-        // Criptografa a senha antes de salvar
+        User newUser = new User();
+        newUser.setFirstName(data.firstName());
+        newUser.setLastName(data.lastName());
+        newUser.setEmail(data.email());
         newUser.setPassword(passwordEncoder.encode(data.password()));
-        newUser.setCreatedAt(LocalDateTime.now());
-        newUser.setUpdatedAt(LocalDateTime.now());
+        newUser.setInstagram(data.instagram());
+        newUser.setUniversity(data.university());
+        newUser.setCourse(data.course());
 
-        return userRepository.save(newUser);
+        User savedUser = userRepository.save(newUser);
+        return UserResponseDTO.fromEntity(savedUser);
     }
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<UserResponseDTO> getAllUsers() {
+        return userRepository.findAll()
+                .stream()
+                .map(UserResponseDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 
-    public Optional<User> getUserById(UUID id) {
-        return userRepository.findById(id);
+    @Transactional(readOnly = true)
+    public UserResponseDTO getUserById(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com ID: " + id));
+        return UserResponseDTO.fromEntity(user);
     }
 
-    public Optional<User> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+    @Transactional(readOnly = true)
+    public UserResponseDTO getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com email: " + email));
+        return UserResponseDTO.fromEntity(user);
     }
 
-    public Optional<User> updateUser(UUID id, UserUpdateDTO data) {
-        // Para update, a senha é opcional
-        validateUserDataForUpdate(data);
+    @Transactional
+    public UserResponseDTO updateUser(UUID id, UserUpdateDTO data) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com ID: " + id));
 
-        Optional<User> optionalUser = userRepository.findById(id);
-        if (optionalUser.isPresent()) {
-            User userToUpdate = optionalUser.get();
+        if (!user.getEmail().equals(data.email()) && userRepository.existsByEmail(data.email())) {
+            throw new EmailAlreadyExistsException(data.email());
+        }
 
-            // Verifica se o email mudou e se já existe
-            if (!userToUpdate.getEmail().equals(data.email()) && userRepository.existsByEmail(data.email())) {
-                throw new IllegalArgumentException("Email already registered");
-            }
-
-            userToUpdate.setFirstName(data.firstName());
-            userToUpdate.setLastName(data.lastName());
-            userToUpdate.setEmail(data.email());
-
-            // Só atualiza a senha se foi fornecida uma nova senha
-            if (data.password() != null && !data.password().isBlank()) {
-                userToUpdate.setPassword(passwordEncoder.encode(data.password()));
-            }
-
-            userToUpdate.setInstagram(data.instagram());
-            userToUpdate.setUniversity(data.university());
-            userToUpdate.setCourse(data.course());
-            userToUpdate.setUpdatedAt(LocalDateTime.now());
-
-            return Optional.of(userRepository.save(userToUpdate));
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    public boolean deleteUser(UUID id) {
-        if (!userRepository.existsById(id)) {
-            return false;
-        }
-        
-        try {
-            // O PostgreSQL tem ON DELETE CASCADE configurado para:
-            // 1. event.organizer_id -> deleta eventos organizados pelo usuário
-            // 2. event_participant.user_id -> deleta participações do usuário
-            // Então podemos deletar diretamente
-            userRepository.deleteById(id);
-            
-            // Verifica se foi realmente deletado
-            return !userRepository.existsById(id);
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao deletar usuário. Possível violação de integridade referencial: " + e.getMessage());
-        }
-    }
-
-    private void validateUserData(UserRequestDTO data) {
-        if (data.firstName() == null || data.firstName().isBlank()) {
-            throw new IllegalArgumentException("First name is required");
-        }
-        if (data.lastName() == null || data.lastName().isBlank()) {
-            throw new IllegalArgumentException("Last name is required");
-        }
-        if (data.email() == null || data.email().isBlank()) {
-            throw new IllegalArgumentException("Email is required");
-        }
-        if (!isValidEmail(data.email())) {
-            throw new IllegalArgumentException("Invalid email format");
-        }
-        if (data.password() == null || data.password().isBlank()) {
-            throw new IllegalArgumentException("Password is required");
-        }
-        if (data.password().length() < 6) {
-            throw new IllegalArgumentException("Password must be at least 6 characters long");
-        }
-    }
-
-    // Validação para update - senha é opcional
-    private void validateUserDataForUpdate(UserUpdateDTO data) {
-        if (data.firstName() == null || data.firstName().isBlank()) {
-            throw new IllegalArgumentException("First name is required");
-        }
-        if (data.lastName() == null || data.lastName().isBlank()) {
-            throw new IllegalArgumentException("Last name is required");
-        }
-        if (data.email() == null || data.email().isBlank()) {
-            throw new IllegalArgumentException("Email is required");
-        }
-        if (!isValidEmail(data.email())) {
-            throw new IllegalArgumentException("Invalid email format");
-        }
-        // Para update, a senha é opcional, mas se fornecida deve ter pelo menos 6 caracteres
-        if (data.password() != null && !data.password().isBlank() && data.password().length() < 6) {
-            throw new IllegalArgumentException("Password must be at least 6 characters long");
-        }
-    }
-
-    private boolean isValidEmail(String email) {
-        return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
-    }
-
-    private User mapDtoToEntity(UserRequestDTO data) {
-        User user = new User();
         user.setFirstName(data.firstName());
         user.setLastName(data.lastName());
         user.setEmail(data.email());
-        // A senha será criptografada no método createUser
-        user.setPassword(data.password());
+
+        if (data.password() != null && !data.password().isBlank()) {
+            user.setPassword(passwordEncoder.encode(data.password()));
+        }
+
         user.setInstagram(data.instagram());
         user.setUniversity(data.university());
         user.setCourse(data.course());
-        return user;
+
+        User updatedUser = userRepository.save(user);
+        return UserResponseDTO.fromEntity(updatedUser);
+    }
+
+    @Transactional
+    public void deleteUser(UUID id) {
+        if (!userRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Usuário não encontrado com ID: " + id);
+        }
+        userRepository.deleteById(id);
     }
 }
