@@ -18,8 +18,7 @@ import java.util.UUID;
 public class User {
     @Id
     @GeneratedValue
-    @Column(name = "id_user")
-    private UUID id_user;
+    private UUID id;
 
     @Column(name = "first_name", nullable = false)
     private String firstName;
@@ -27,24 +26,32 @@ public class User {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password", nullable = false)
+    @Column(nullable = false)
     private String password;
 
-    @Column(name = "instagram")
     private String instagram;
 
-    @Column(name = "university")
     private String university;
 
-    @Column(name = "course")
     private String course;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
