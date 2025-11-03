@@ -5,7 +5,6 @@ import com.meetix.meetix_api.domain.event.EventParticipant;
 import com.meetix.meetix_api.domain.event.EventParticipantRequestDTO;
 import com.meetix.meetix_api.domain.event.EventParticipantResponseDTO;
 import com.meetix.meetix_api.domain.user.User;
-import com.meetix.meetix_api.exception.*;
 import com.meetix.meetix_api.exception.common.ResourceNotFoundException;
 import com.meetix.meetix_api.exception.common.ValidationException;
 import com.meetix.meetix_api.exception.event.EventFullException;
