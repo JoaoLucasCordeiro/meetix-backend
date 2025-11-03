@@ -1,7 +1,8 @@
 package com.meetix.meetix_api.service;
 
 import com.meetix.meetix_api.config.JwtProperties;
-import com.meetix.meetix_api.exception.JwtAuthenticationException;
+import com.meetix.meetix_api.exception.auth.JwtAuthenticationException;
+
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
