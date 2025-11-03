@@ -5,6 +5,7 @@ import com.meetix.meetix_api.domain.event.EventRequestDTO;
 import com.meetix.meetix_api.domain.event.EventResponseDTO;
 import com.meetix.meetix_api.domain.event.EventUpdateDTO;
 import com.meetix.meetix_api.domain.user.User;
+import com.meetix.meetix_api.exception.common.PermissionDeniedException;
 import com.meetix.meetix_api.exception.common.ResourceNotFoundException;
 import com.meetix.meetix_api.exception.common.ValidationException;
 import com.meetix.meetix_api.repositories.EventRepository;
@@ -24,6 +25,7 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final EventAdminService eventAdminService;
 
     @Transactional
     public EventResponseDTO createEvent(EventRequestDTO data) {
@@ -87,38 +89,73 @@ public class EventService {
     }
 
     @Transactional
-    public EventResponseDTO updateEvent(UUID id, EventUpdateDTO data) {
-        validateEventBusinessRules(data);
-
+    public EventResponseDTO updateEvent(UUID id, EventUpdateDTO data, UUID userId) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado com ID: " + id));
 
-        event.setEventType(data.eventType());
-        event.setTitle(data.title());
-        event.setDescription(data.description());
-        event.setStartDateTime(data.startDateTime());
-        event.setEndDateTime(data.endDateTime());
-        event.setLocation(data.location());
-        event.setEventUrl(data.eventUrl());
-        event.setRemote(data.remote() != null ? data.remote() : false);
-        event.setMaxAttendees(data.maxAttendees());
-        event.setIsPaid(data.isPaid() != null ? data.isPaid() : false);
-        event.setPrice(data.price());
-        event.setGenerateCertificate(data.generateCertificate() != null ? data.generateCertificate() : false);
-        
+        // ✅ VALIDAÇÃO DE PERMISSÃO (agora lança PermissionDeniedException)
+        if (!eventAdminService.isEventAdminOrCreator(id, userId)) {
+            throw new PermissionDeniedException("Apenas o criador ou administradores podem editar este evento");
+        }
+
+        // Atualizar apenas campos não-nulos
+        if (data.eventType() != null) {
+            event.setEventType(data.eventType());
+        }
+        if (data.title() != null) {
+            event.setTitle(data.title());
+        }
+        if (data.description() != null) {
+            event.setDescription(data.description());
+        }
+        if (data.startDateTime() != null) {
+            event.setStartDateTime(data.startDateTime());
+        }
+        if (data.endDateTime() != null) {
+            event.setEndDateTime(data.endDateTime());
+        }
+        if (data.location() != null) {
+            event.setLocation(data.location());
+        }
+        if (data.eventUrl() != null) {
+            event.setEventUrl(data.eventUrl());
+        }
+        if (data.remote() != null) {
+            event.setRemote(data.remote());
+        }
+        if (data.maxAttendees() != null) {
+            event.setMaxAttendees(data.maxAttendees());
+        }
+        if (data.isPaid() != null) {
+            event.setIsPaid(data.isPaid());
+        }
+        if (data.price() != null) {
+            event.setPrice(data.price());
+        }
+        if (data.generateCertificate() != null) {
+            event.setGenerateCertificate(data.generateCertificate());
+        }
         if (data.imgUrl() != null) {
             event.setImgUrl(data.imgUrl());
         }
+
+        // Validar regras de negócio após atualização
+        validateEventBusinessRulesForUpdate(event);
 
         Event updatedEvent = eventRepository.save(event);
         return EventResponseDTO.fromEntity(updatedEvent);
     }
 
     @Transactional
-    public void deleteEvent(UUID id) {
-        if (!eventRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Evento não encontrado com ID: " + id);
+    public void deleteEvent(UUID id, UUID userId) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento não encontrado com ID: " + id));
+
+        // ✅ VALIDAÇÃO DE PERMISSÃO (agora lança PermissionDeniedException)
+        if (!event.getOrganizer().getId().equals(userId)) {
+            throw new PermissionDeniedException("Apenas o criador do evento pode deletá-lo");
         }
+
         eventRepository.deleteById(id);
     }
 
@@ -144,23 +181,23 @@ public class EventService {
         }
     }
 
-    private void validateEventBusinessRules(EventUpdateDTO data) {
-        if (data.endDateTime().isBefore(data.startDateTime())) {
+    private void validateEventBusinessRulesForUpdate(Event event) {
+        if (event.getEndDateTime().isBefore(event.getStartDateTime())) {
             throw new ValidationException("Data de término deve ser posterior à data de início");
         }
 
-        if (Boolean.TRUE.equals(data.remote())) {
-            if (data.eventUrl() == null || data.eventUrl().isBlank()) {
+        if (Boolean.TRUE.equals(event.getRemote())) {
+            if (event.getEventUrl() == null || event.getEventUrl().isBlank()) {
                 throw new ValidationException("URL do evento é obrigatória para eventos remotos");
             }
         } else {
-            if (data.location() == null || data.location().isBlank()) {
+            if (event.getLocation() == null || event.getLocation().isBlank()) {
                 throw new ValidationException("Localização é obrigatória para eventos presenciais");
             }
         }
 
-        if (Boolean.TRUE.equals(data.isPaid())) {
-            if (data.price() == null || data.price().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+        if (Boolean.TRUE.equals(event.getIsPaid())) {
+            if (event.getPrice() == null || event.getPrice().compareTo(java.math.BigDecimal.ZERO) <= 0) {
                 throw new ValidationException("Preço é obrigatório e deve ser maior que zero para eventos pagos");
             }
         }
