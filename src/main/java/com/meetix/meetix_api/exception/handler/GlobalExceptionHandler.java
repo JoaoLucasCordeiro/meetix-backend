@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.meetix.meetix_api.exception.auth.JwtAuthenticationException;
 import com.meetix.meetix_api.exception.common.ErrorResponse;
+import com.meetix.meetix_api.exception.common.PermissionDeniedException;
 import com.meetix.meetix_api.exception.common.ResourceNotFoundException;
 import com.meetix.meetix_api.exception.common.ValidationException;
 import com.meetix.meetix_api.exception.event.EventFullException;
@@ -50,6 +51,16 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 LocalDateTime.now());
         return ResponseEntity.badRequest().body(error);
+    }
+
+    // ✅ NOVO: Handler para erros de permissão (403)
+    @ExceptionHandler(PermissionDeniedException.class)
+    public ResponseEntity<ErrorResponse> handlePermissionDenied(PermissionDeniedException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                ex.getMessage(),
+                LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     @ExceptionHandler(JwtAuthenticationException.class)
@@ -97,6 +108,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(EventNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEventNotFound(EventNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -119,23 +148,4 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
-
-    @ExceptionHandler(EventNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEventNotFound(EventNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                ex.getMessage(),
-                LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(
-                HttpStatus.NOT_FOUND.value(),
-                ex.getMessage(),
-                LocalDateTime.now());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-
 }
