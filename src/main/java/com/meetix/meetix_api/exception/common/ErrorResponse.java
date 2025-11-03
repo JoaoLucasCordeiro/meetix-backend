@@ -1,4 +1,4 @@
-package com.meetix.meetix_api.exception;
+package com.meetix.meetix_api.exception.common;
 
 import java.time.LocalDateTime;
 

@@ -1,4 +1,4 @@
-package com.meetix.meetix_api.exception;
+package com.meetix.meetix_api.exception.auth;
 
 public class JwtAuthenticationException extends RuntimeException {
     public JwtAuthenticationException(String message) {

@@ -1,4 +1,4 @@
-package com.meetix.meetix_api.exception;
+package com.meetix.meetix_api.exception.handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -6,6 +6,15 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.meetix.meetix_api.exception.auth.JwtAuthenticationException;
+import com.meetix.meetix_api.exception.common.ErrorResponse;
+import com.meetix.meetix_api.exception.common.ResourceNotFoundException;
+import com.meetix.meetix_api.exception.common.ValidationException;
+import com.meetix.meetix_api.exception.event.EventFullException;
+import com.meetix.meetix_api.exception.participation.AlreadyRegisteredException;
+import com.meetix.meetix_api.exception.participation.EventParticipantNotFoundException;
+import com.meetix.meetix_api.exception.user.EmailAlreadyExistsException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
