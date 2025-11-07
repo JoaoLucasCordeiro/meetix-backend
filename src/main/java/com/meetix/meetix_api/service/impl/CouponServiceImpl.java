@@ -1,9 +1,11 @@
 package com.meetix.meetix_api.service.impl;
 
+// ...
 import com.meetix.meetix_api.domain.coupon.Coupon;
-import com.meetix.meetix_api.domain.coupon.CouponRequestDTO;
-import com.meetix.meetix_api.domain.event.Event;
 import com.meetix.meetix_api.domain.coupon.CouponApplyRequest;
+import com.meetix.meetix_api.domain.coupon.CouponRequestDTO;
+import com.meetix.meetix_api.domain.coupon.CouponResponseDTO;
+import com.meetix.meetix_api.domain.event.Event;
 import com.meetix.meetix_api.repositories.CouponRepository;
 import com.meetix.meetix_api.repositories.EventRepository;
 import com.meetix.meetix_api.service.CouponService;
@@ -11,9 +13,12 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,45 +28,60 @@ public class CouponServiceImpl implements CouponService {
     private final EventRepository eventRepository;
 
     @Override
-    public Coupon addCouponToEvent(UUID eventId, CouponRequestDTO couponData) {
+    public CouponResponseDTO addCouponToEvent(UUID eventId, CouponRequestDTO couponData) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new EntityNotFoundException("Evento não encontrado"));
 
         Coupon coupon = new Coupon();
         coupon.setCode(couponData.code());
         coupon.setDiscount(couponData.discount());
-        coupon.setValid(new Date(couponData.valid()));
+
+
+        coupon.setValid(LocalDateTime.ofInstant(Instant.ofEpochMilli(couponData.valid()), ZoneId.systemDefault()));
+
         coupon.setEvent(event);
 
-        return couponRepository.save(coupon);
+        Coupon savedCoupon = couponRepository.save(coupon);
+
+
+        return mapToResponse(savedCoupon);
     }
 
     @Override
-    public Coupon applyCoupon(CouponApplyRequest request) {
-        // 1. Busca o cupom pelo código
+    public CouponResponseDTO applyCoupon(CouponApplyRequest request) {
         Coupon coupon = couponRepository.findByCode(request.code())
                 .orElseThrow(() -> new EntityNotFoundException("Cupom '" + request.code() + "' inválido."));
 
-        // 2. Verifica se o cupom pertence ao evento correto
         if (!coupon.getEvent().getId().equals(request.eventId())) {
             throw new IllegalArgumentException("Este cupom não é válido para este evento.");
         }
 
-        // 3. Verifica se o cupom não está expirado
-        if (coupon.getValid().before(new Date())) { // 'new Date()' é a data/hora atual
+
+        if (coupon.getValid().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Cupom expirado.");
         }
 
-        // 4. Se passou em todas as verificações, retorna o cupom
-        return coupon;
+        return mapToResponse(coupon);
     }
 
     @Override
-    public List<Coupon> consultValidCouponsForEvent(UUID eventId) {
-        // Pega a data/hora exata de agora
-        Date currentDate = new Date();
+    public List<CouponResponseDTO> consultValidCouponsForEvent(UUID eventId) {
+        LocalDateTime currentDate = LocalDateTime.now();
 
-        // Retorna a lista de cupons
-        return couponRepository.findByEventIdAndValidAfter(eventId, currentDate);
+
+        return couponRepository.findByEventIdAndValidAfter(eventId, currentDate)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private CouponResponseDTO mapToResponse(Coupon coupon) {
+        return new CouponResponseDTO(
+                coupon.getId(),
+                coupon.getCode(),
+                coupon.getDiscount(),
+                coupon.getValid(),
+                coupon.getEvent().getId()
+        );
     }
 }

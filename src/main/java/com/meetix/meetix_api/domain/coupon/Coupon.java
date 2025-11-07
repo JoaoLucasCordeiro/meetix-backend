@@ -4,8 +4,7 @@ package com.meetix.meetix_api.domain.coupon;
 import com.meetix.meetix_api.domain.event.Event;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 
@@ -23,7 +22,7 @@ public class Coupon {
     private UUID id;
     private String code;
     private Integer discount;
-    private Date valid;
+    private LocalDateTime valid;
 
     @ManyToOne
     @JoinColumn(name = "event_id")

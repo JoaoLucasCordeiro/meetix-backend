@@ -1,8 +1,8 @@
 package com.meetix.meetix_api.controller;
 
-import com.meetix.meetix_api.domain.coupon.Coupon;
 import com.meetix.meetix_api.domain.coupon.CouponRequestDTO;
 import com.meetix.meetix_api.domain.coupon.CouponApplyRequest;
+import com.meetix.meetix_api.domain.coupon.CouponResponseDTO; // <-- Importe o DTO
 import com.meetix.meetix_api.service.CouponService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,20 +20,20 @@ public class CouponController {
     private final CouponService couponService;
 
     @PostMapping("/event/{eventId}")
-    public ResponseEntity<Coupon> addCouponToEvent(@PathVariable UUID eventId, @RequestBody CouponRequestDTO data) {
-        Coupon coupon = couponService.addCouponToEvent(eventId, data);
+    public ResponseEntity<CouponResponseDTO> addCouponToEvent(@PathVariable UUID eventId, @RequestBody CouponRequestDTO data) {
+        CouponResponseDTO coupon = couponService.addCouponToEvent(eventId, data);
         return new ResponseEntity<>(coupon, HttpStatus.CREATED);
     }
 
     @PostMapping("/apply")
-    public ResponseEntity<Coupon> applyCoupon(@Valid @RequestBody CouponApplyRequest request) {
-        Coupon coupon = couponService.applyCoupon(request);
+    public ResponseEntity<CouponResponseDTO> applyCoupon(@Valid @RequestBody CouponApplyRequest request) {
+        CouponResponseDTO coupon = couponService.applyCoupon(request);
         return ResponseEntity.ok(coupon);
     }
 
     @GetMapping("/event/{eventId}/valid")
-    public ResponseEntity<List<Coupon>> getValidCoupons(@PathVariable UUID eventId) {
-        List<Coupon> coupons = couponService.consultValidCouponsForEvent(eventId);
+    public ResponseEntity<List<CouponResponseDTO>> getValidCoupons(@PathVariable UUID eventId) {
+        List<CouponResponseDTO> coupons = couponService.consultValidCouponsForEvent(eventId);
         return ResponseEntity.ok(coupons);
     }
 }
