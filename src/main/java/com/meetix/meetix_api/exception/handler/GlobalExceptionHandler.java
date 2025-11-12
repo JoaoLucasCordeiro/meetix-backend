@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.meetix.meetix_api.exception.auth.JwtAuthenticationException;
+import com.meetix.meetix_api.exception.certificate.CertificateAlreadyExistsException;
+import com.meetix.meetix_api.exception.certificate.CertificateGenerationNotAllowedException;
+import com.meetix.meetix_api.exception.certificate.CertificateNotFoundException;
 import com.meetix.meetix_api.exception.common.ErrorResponse;
 import com.meetix.meetix_api.exception.common.PermissionDeniedException;
 import com.meetix.meetix_api.exception.common.ResourceNotFoundException;
@@ -124,6 +127,33 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 LocalDateTime.now());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(CertificateNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCertificateNotFound(CertificateNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(CertificateAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleCertificateAlreadyExists(CertificateAlreadyExistsException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(CertificateGenerationNotAllowedException.class)
+    public ResponseEntity<ErrorResponse> handleCertificateGenerationNotAllowed(CertificateGenerationNotAllowedException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                LocalDateTime.now());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
