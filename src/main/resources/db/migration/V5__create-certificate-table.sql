@@ -1,5 +1,5 @@
 CREATE TABLE certificates (
-    id UUID PRIMARY KEY,
+    certificate_id UUID PRIMARY KEY,
     participant_id UUID NOT NULL,
     validation_code UUID NOT NULL,
     issue_date TIMESTAMP NOT NULL,
