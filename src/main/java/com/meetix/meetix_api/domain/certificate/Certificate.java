@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Table(name = "certificates")
 @Entity
 @Getter
 @Setter
@@ -20,17 +21,18 @@ public class Certificate {
 
     @Id
     @GeneratedValue
-    private UUID certificate_id;
+    @Column(name = "certificate_id")
+    private UUID certificateId;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "participant_id", referencedColumnName = "id", nullable = false, unique = true)
     private EventParticipant participant;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "validation_code", nullable = false, unique = true)
     private UUID validationCode;
 
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(name = "issue_date", nullable = false, updatable = false)
     private LocalDateTime issueDate;
 
     public Certificate(EventParticipant participant, UUID validationCode) {
