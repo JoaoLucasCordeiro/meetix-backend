@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            width: 297mm;
+            height: 210mm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .certificate-container {
+            width: 260mm;
+            height: 180mm;
+            background: white;
+            border: 15px solid #2c3e50;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            padding: 40px 60px;
+        }
+
+        .certificate-border {
+            border: 3px solid #e67e22;
+            height: 100%;
+            padding: 30px;
+            position: relative;
+        }
+
+        .certificate-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .certificate-title {
+            font-size: 56px;
+            font-weight: bold;
+            color: #2c3e50;
+            letter-spacing: 8px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .certificate-subtitle {
+            font-size: 18px;
+            color: #7f8c8d;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .certificate-body {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .certificate-text {
+            font-size: 20px;
+            color: #34495e;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+
+        .participant-name {
+            font-size: 42px;
+            font-weight: bold;
+            color: #e67e22;
+            margin: 25px 0;
+            border-bottom: 2px solid #e67e22;
+            display: inline-block;
+            padding: 10px 40px;
+        }
+
+        .event-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 25px 0;
+        }
+
+        .event-details {
+            font-size: 16px;
+            color: #7f8c8d;
+            margin-top: 20px;
+        }
+
+        .certificate-footer {
+            position: absolute;
+            bottom: 30px;
+            left: 60px;
+            right: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .signature-section {
+            text-align: center;
+            flex: 1;
+        }
+
+        .signature-line {
+            border-top: 2px solid #2c3e50;
+            width: 200px;
+            margin: 50px auto 10px;
+        }
+
+        .signature-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-weight: bold;
+        }
+
+        .validation-code {
+            font-size: 11px;
+            color: #95a5a6;
+            text-align: right;
+        }
+
+        .decorative-element {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: #e67e22;
+            opacity: 0.1;
+            border-radius: 50%;
+        }
+
+        .decorative-element.top-left {
+            top: -50px;
+            left: -50px;
+        }
+
+        .decorative-element.bottom-right {
+            bottom: -50px;
+            right: -50px;
+        }
+    </style>
+</head>
+<body>
+<div class="certificate-container">
+    <div class="decorative-element top-left"></div>
+    <div class="decorative-element bottom-right"></div>
+
+    <div class="certificate-border">
+        <div class="certificate-header">
+            <div class="certificate-title">Certificado</div>
+            <div class="certificate-subtitle">de Participação</div>
+        </div>
+
+        <div class="certificate-body">
+            <p class="certificate-text">Certificamos que</p>
+
+            <div class="participant-name" th:text="${participantName}">Nome do Participante</div>
+
+            <p class="certificate-text">participou com sucesso do evento</p>
+
+            <div class="event-name" th:text="${eventName}">Nome do Evento</div>
+
+            <div class="event-details">
+                <p th:text="'Realizado de ' + ${#temporals.format(eventStartDate, 'dd/MM/yyyy')} + ' a ' + ${#temporals.format(eventEndDate, 'dd/MM/yyyy')}">
+                    Datas do evento
+                </p>
+            </div>
+        </div>
+
+        <div class="certificate-footer">
+            <div class="signature-section">
+                <div class="signature-line"></div>
+                <div class="signature-label" th:text="${organizerName}">Nome do Organizador</div>
+                <div style="font-size: 12px; color: #95a5a6;">Organizador do Evento</div>
+            </div>
+
+            <div class="validation-code">
+                <p>Certificado emitido em <span th:text="${#temporals.format(issueDate, 'dd/MM/yyyy')}">Data de Emissão</span></p>
+                <p>Código de Validação: <span th:text="${validationCode}">XXXX-XXXX-XXXX</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
