@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface CouponService {
 
-    CouponResponseDTO addCouponToEvent(UUID eventId, CouponRequestDTO couponData);
+    CouponResponseDTO addCouponToEvent(UUID eventId, CouponRequestDTO couponData, UUID userId);
     CouponResponseDTO applyCoupon(CouponApplyRequest request);
     List<CouponResponseDTO> consultValidCouponsForEvent(UUID eventId);
 }
