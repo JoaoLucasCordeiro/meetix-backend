@@ -1,5 +1,6 @@
 package com.meetix.meetix_api.domain.event;
 
+import com.meetix.meetix_api.domain.certificate.Certificate;
 import com.meetix.meetix_api.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -37,6 +38,9 @@ public class EventParticipant {
 
     @Column(name = "checked_in_at")
     private LocalDateTime checkedInAt;
+
+    @OneToOne(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Certificate certificate;
 
     @PrePersist
     protected void onCreate() {
