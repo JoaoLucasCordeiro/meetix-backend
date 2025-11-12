@@ -2,14 +2,17 @@ package com.meetix.meetix_api.repositories;
 
 import com.meetix.meetix_api.domain.certificate.Certificate;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
 
+@Repository
 public interface CertificateRepository extends JpaRepository<Certificate, UUID> {
-    Optional<Certificate> findByValidationCode(UUID validationCode); // usca um certificado usando o código de validação único.
+
+    Optional<Certificate> findByValidationCode(UUID validationCode);
 
     Optional<Certificate> findByParticipantId(UUID participantId);
-    //Busca um certificado pelo ID da participação
-    //Usado para verificar se um certificado já foi emitido para um participante
+
+    boolean existsByParticipantId(UUID participantId);
 }
